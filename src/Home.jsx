@@ -1,0 +1,4 @@
+// src/Home.jsx
+export default function Home() {
+  return <h1 style={{textAlign: "center", marginTop: "50px"}}>¡Bienvenido al Home de AgroDirecto!</h1>;
+}
