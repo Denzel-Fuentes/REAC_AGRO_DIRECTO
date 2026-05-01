@@ -1,0 +1,12 @@
+import { api } from "./client";
+
+/**
+ * Servicio para interactuar con la API de productos de AgroDirecto.
+ */
+export const productApi = {
+  getAll: () => api.get("/products"),
+  getById: (id) => api.get(`/products/${id}`),
+  create: (data) => api.post("/products", data),
+  update: (id, data) => api.put(`/products/${id}`, data),
+  delete: (id) => api.delete(`/products/${id}`),
+};

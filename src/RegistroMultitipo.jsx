@@ -1,8 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom"; // 1. Importamos el hook
-import { collection, addDoc, serverTimestamp ,setDoc,doc} from "firebase/firestore";
-import { db,auth } from "./firebase";
-import { createUserWithEmailAndPassword } from "firebase/auth";
+import { authApi } from "./api/auth.service";
 
 /* ─── Constantes ─────────────────────────────────────────────── */
 const ROLES = [
@@ -161,38 +159,38 @@ export default function RegistroMultitipo() {
       if (!terminos) { setTerminosErr(true); return; }
       setSubmitting(true);
       
+      // Mapeamos los roles de la interfaz al formato esperado por el backend
+      const ROLE_MAP = {
+        productor: "PRODUCER",
+        comprador: "BUYER",
+        transportista: "TRANSPORTER"
+      };
+
+      // Separamos los datos generales del perfil específico
+      const { contrasena, correo, nombre, celular, ...perfilEspecifico } = values;
+
+      const payload = {
+        email: correo,
+        password: contrasena,
+        fullName: nombre,
+        phone: celular, // Asumiendo que tu DTO acepte un campo de celular
+        primaryRole: ROLE_MAP[rolId] || "BUYER",
+        profileDetails: perfilEspecifico // Mandamos los datos dinámicos como detalles del perfil
+      };
+
       try {
-        // 1. CREAR EL USUARIO EN FIREBASE AUTH
-        const userCredential = await createUserWithEmailAndPassword(
-          auth, 
-          values.correo, 
-          values.contrasena
-        );
-        const usuarioAuth = userCredential.user; // Aquí obtenemos el UID
+        // Llamada a nuestro servicio de autenticación
+        const response = await authApi.register(payload);
 
-        // 2. SEPARAR LA CONTRASEÑA DE LOS DEMÁS DATOS (Por seguridad)
-        const { contrasena, ...datosPerfil } = values;
-
-        // 3. GUARDAR EL PERFIL EN FIRESTORE VINCULADO AL UID
-        // Usamos setDoc para forzar que el ID del documento sea igual al UID de Auth
-        await setDoc(doc(db, "usuarios", usuarioAuth.uid), {
-          rol: rolId,
-          ...datosPerfil, // Guardamos todo EXCEPTO la contraseña
-          estadoValidacion: rol.estado,
-          fechaRegistro: serverTimestamp()
-        });
+        // Guardamos los tokens y sesión (idealmente esto debería ir a un Context, Redux o Zustand)
+        localStorage.setItem("accessToken", response.accessToken);
+        localStorage.setItem("refreshToken", response.refreshToken);
+        localStorage.setItem("user", JSON.stringify(response.user));
 
         setStep(4);
       } catch (error) {
         console.error("Error al registrar: ", error);
-        // Manejo de errores amigable
-        if (error.code === 'auth/email-already-in-use') {
-          alert("Este correo ya está registrado. Intenta iniciar sesión.");
-        } else if (error.code === 'auth/weak-password') {
-          alert("La contraseña es muy débil.");
-        } else {
-          alert("Hubo un error al registrar. Intenta de nuevo.");
-        }
+        alert(error.message || "Hubo un error al procesar el registro con el servidor.");
       } finally {
         setSubmitting(false);
       }
