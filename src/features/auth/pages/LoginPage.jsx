@@ -89,7 +89,7 @@ export default function LoginPage() {
         <button
           className="flex w-full items-center justify-center rounded-lg bg-green-800 px-4 py-3.5 text-sm font-extrabold text-white shadow-lg shadow-green-900/20 transition hover:bg-green-900 disabled:cursor-not-allowed disabled:opacity-70"
           type="submit"
-          disabled={isSubmitting}
+          tredisabled={isSubmitting}
         >
           {isSubmitting ? (
             <span className="h-5 w-5 animate-spin rounded-full border-2 border-white/40 border-t-white" />
@@ -106,7 +106,7 @@ export default function LoginPage() {
           type="button"
           onClick={() => navigate("/registro")}
         >
-          Registrate aquí
+          Registrate aquí, Por favor
         </button>
       </p>
     </AuthLayout>
